@@ -100,13 +100,25 @@ class AirDrawingApp:
             })
 
     def open_camera(self):
-        """Open webcam with graceful fallback to alternative indices."""
+        """Open webcam with graceful fallback to alternative indices and DirectShow on Windows."""
         print(f"[AirDrawing] Initializing webcam at index {self.camera_index}...")
-        self.cap = cv2.VideoCapture(self.camera_index)
+        
+        # Try DirectShow on Windows for near-instant camera startup
+        if sys.platform.startswith("win"):
+            self.cap = cv2.VideoCapture(self.camera_index, cv2.CAP_DSHOW)
+            if not self.cap or not self.cap.isOpened():
+                self.cap = cv2.VideoCapture(self.camera_index)
+        else:
+            self.cap = cv2.VideoCapture(self.camera_index)
 
         if not self.cap.isOpened():
             print(f"[AirDrawing] Camera index {self.camera_index} failed. Trying index 1...")
-            self.cap = cv2.VideoCapture(1)
+            if sys.platform.startswith("win"):
+                self.cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+                if not self.cap or not self.cap.isOpened():
+                    self.cap = cv2.VideoCapture(1)
+            else:
+                self.cap = cv2.VideoCapture(1)
 
         if not self.cap.isOpened():
             print("\n" + "=" * 60)
