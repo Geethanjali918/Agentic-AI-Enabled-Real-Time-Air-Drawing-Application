@@ -38,6 +38,7 @@ class AICommandDispatcher:
 
         cmd = command_text.strip().lower()
 
+        # 1. Color commands
         if "blue" in cmd:
             self.canvas.set_color("BLUE")
             return {"status": "success", "action": "set_color", "color": "BLUE", "message": "Color changed to Blue"}
@@ -51,14 +52,17 @@ class AICommandDispatcher:
             self.canvas.set_color("BLACK")
             return {"status": "success", "action": "set_color", "color": "BLACK", "message": "Color changed to Black"}
 
+        # 2. Clear canvas commands
         elif any(word in cmd for word in ["clear", "wipe", "clean", "reset"]):
             self.canvas.clear()
             return {"status": "success", "action": "clear", "message": "Canvas cleared"}
 
+        # 3. Save drawing commands
         elif any(word in cmd for word in ["save", "export", "download"]):
             filepath = self.canvas.save()
             return {"status": "success", "action": "save", "filepath": filepath, "message": f"Drawing saved to {filepath}"}
 
+        # 4. Brush size commands
         elif any(word in cmd for word in ["bigger", "increase", "large", "thick"]):
             self.canvas.set_brush_size("LARGE")
             return {"status": "success", "action": "brush_size", "size": "LARGE", "message": "Brush size set to Large"}
@@ -69,10 +73,12 @@ class AICommandDispatcher:
             self.canvas.set_brush_size("MEDIUM")
             return {"status": "success", "action": "brush_size", "size": "MEDIUM", "message": "Brush size set to Medium"}
 
+        # 5. Erase command
         elif "erase" in cmd:
             self.canvas.show_toast("Close fist to erase strokes")
             return {"status": "success", "action": "erase_hint", "message": "Eraser activated: Close fist over canvas to erase"}
 
+        # 6. Check custom registered handlers (for future expansion)
         for intent, handler in self.custom_handlers.items():
             if intent in cmd:
                 return handler(cmd)

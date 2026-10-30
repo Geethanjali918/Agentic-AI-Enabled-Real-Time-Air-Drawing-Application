@@ -18,12 +18,12 @@ class CanvasManager:
     canvas clearing, and PNG exporting.
     """
 
-  
+    # Vibrant BGR colors
     COLORS = {
-        "BLUE": (255, 110, 20),      
-        "GREEN": (40, 210, 50),      
-        "RED": (30, 40, 240),        
-        "BLACK": (25, 25, 25),       
+        "BLUE": (255, 110, 20),      # Vivid Royal Blue (BGR)
+        "GREEN": (40, 210, 50),      # Fresh Emerald Green (BGR)
+        "RED": (30, 40, 240),        # Vibrant Red (BGR)
+        "BLACK": (25, 25, 25),       # Deep Crisp Black (BGR)
     }
 
     BRUSH_SIZES = {
@@ -36,18 +36,23 @@ class CanvasManager:
         self.width = width
         self.height = height
 
-
+        # Dual-layer representation
+        # canvas_color stores actual BGR colors drawn
         self.canvas_color = np.zeros((self.height, self.width, 3), dtype=np.uint8)
+        # canvas_mask is a 1-channel uint8 mask: 255 where strokes exist, 0 for empty space
         self.canvas_mask = np.zeros((self.height, self.width), dtype=np.uint8)
 
+        # Active drawing state
         self.current_color_name = "BLUE"
         self.current_color = self.COLORS[self.current_color_name]
         self.brush_size_name = "MEDIUM"
         self.brush_size = self.BRUSH_SIZES[self.brush_size_name]
         self.eraser_radius = 35
 
+        # Tracking state to connect consecutive points
         self.prev_point = None
 
+        # Toast / status notification message
         self.toast_message = ""
         self.toast_expiry = 0.0
 
@@ -97,17 +102,18 @@ class CanvasManager:
         cx, cy = current_point
 
         if self.prev_point is None:
-
+            # First point of stroke - draw a rounded dot
             cv2.circle(self.canvas_color, (cx, cy), self.brush_size // 2, self.current_color, -1, cv2.LINE_AA)
             cv2.circle(self.canvas_mask, (cx, cy), self.brush_size // 2, 255, -1, cv2.LINE_AA)
             self.prev_point = (cx, cy)
             return
 
         px, py = self.prev_point
-
+        # Draw smooth line connecting previous and current points
         cv2.line(self.canvas_color, (px, py), (cx, cy), self.current_color, self.brush_size, cv2.LINE_AA)
         cv2.line(self.canvas_mask, (px, py), (cx, cy), 255, self.brush_size, cv2.LINE_AA)
 
+        # Add rounded caps at joint for seamless curves
         cv2.circle(self.canvas_color, (cx, cy), self.brush_size // 2, self.current_color, -1, cv2.LINE_AA)
         cv2.circle(self.canvas_mask, (cx, cy), self.brush_size // 2, 255, -1, cv2.LINE_AA)
 
@@ -124,11 +130,11 @@ class CanvasManager:
         r = radius if radius is not None else self.eraser_radius
         cx, cy = center_point
 
-
+        # Clear mask and color in circle
         cv2.circle(self.canvas_mask, (cx, cy), r, 0, -1)
         cv2.circle(self.canvas_color, (cx, cy), r, (0, 0, 0), -1)
 
-
+        # In erase mode, line connecting is not needed
         self.prev_point = None
 
     def clear(self):
@@ -151,9 +157,10 @@ class CanvasManager:
         filename = f"air_drawing_{timestamp}.png"
         filepath = os.path.join(save_dir, filename)
 
+        # Create clean white background
         clean_canvas = np.full((self.height, self.width, 3), 255, dtype=np.uint8)
 
-
+        # Place strokes where mask is positive
         clean_canvas[self.canvas_mask > 0] = self.canvas_color[self.canvas_mask > 0]
 
         cv2.imwrite(filepath, clean_canvas)
@@ -171,7 +178,7 @@ class CanvasManager:
         :return: Blended BGR frame
         """
         output = frame.copy()
-
+        # Direct crisp overlay where mask is positive
         stroke_indices = self.canvas_mask > 0
         output[stroke_indices] = self.canvas_color[stroke_indices]
         return output
@@ -190,12 +197,12 @@ class CanvasManager:
             thickness = 2
             (text_w, text_h), baseline = cv2.getTextSize(text, font, scale, thickness)
 
-
+            # Center toast horizontally near bottom above instruction bar
             tx = (self.width - text_w) // 2
             ty = self.height - 55
 
             pad = 10
-
+            # Draw dark rounded background badge
             overlay = frame.copy()
             cv2.rectangle(
                 overlay,
