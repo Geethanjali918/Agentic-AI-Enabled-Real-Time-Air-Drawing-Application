@@ -415,6 +415,7 @@ class AirDrawingApp:
                 # 7. Render UI toolbar, status badge, instructions, and cursor
                 self.draw_ui(blended_frame, active_mode)
                 self.draw_cursor(blended_frame, smoothed_pointer, active_mode)
+                #Geetanjali
 
                 # 8. Calculate FPS
                 curr_time = time.time()
