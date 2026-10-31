@@ -17,6 +17,17 @@ Features:
 - Dual-buffer rendering (crisp drawing overlay including true black strokes)
 - Simple, clean user interface exactly like the previous version
 """
+#jagadeeshwar
+
+
+
+#madhu
+
+
+#saikumar
+
+
+
 
 import os
 import sys
