@@ -408,7 +408,7 @@ class AirDrawingApp:
                 else:
                     self.canvas.reset_stroke()
                     self.hover_button_idx = None
-
+#####wwwwwwwwwww
                 # 6. Blend canvas strokes onto webcam frame
                 blended_frame = self.canvas.blend(frame)
 
