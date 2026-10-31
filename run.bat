@@ -1,9 +1,10 @@
 @echo off
 cd /d "%~dp0"
-title Real-Time Air Drawing Application
+title Agentic AI Air Drawing System
 
 echo =======================================================
 echo    Agentic AI-Enabled Real-Time Air Drawing Application
+echo    Proportional Stack: Dataset + ML + DL + Data Analytics
 echo =======================================================
 echo.
 
@@ -28,29 +29,58 @@ if "%PY_CMD%"=="" (
     exit /b 1
 )
 
-:: Quick dependency check
-echo [AirDrawing] Verifying dependencies...
-%PY_CMD% -c "import cv2, mediapipe, numpy" >nul 2>nul
-if %errorlevel% neq 0 (
-    echo [AirDrawing] Required packages not found. Installing from requirements.txt...
-    %PY_CMD% -m pip install -r requirements.txt
-    if %errorlevel% neq 0 (
-        echo.
-        echo [ERROR] Failed to install dependencies automatically.
-        echo Please run: pip install -r requirements.txt
-        echo.
-        pause
-        exit /b 1
-    )
-)
-
-echo [AirDrawing] Launching application...
+:menu
 echo.
-%PY_CMD% main.py
+echo Please choose an option:
+echo   [1] Launch Real-Time Air Drawing Application (Live Camera)
+echo   [2] Train Machine Learning Models (Random Forest, SVM, KNN)
+echo   [3] Train Deep Learning Models (DeepNet DNN + StrokeCNN)
+echo   [4] Generate Data Analytics Dashboard & EDA Figures
+echo   [5] Collect Custom Hand Gesture Dataset via Webcam
+echo   [6] Run Complete 10-Point Automated Test Suite
+echo   [7] Exit
+echo.
+set /p opt="Enter choice [1-7]: "
 
-if %errorlevel% neq 0 (
+if "%opt%"=="1" (
     echo.
-    echo [NOTICE] Application closed with exit code %errorlevel%.
+    echo [AirDrawing] Launching Real-Time Application...
+    %PY_CMD% main.py
+    goto menu
+) else if "%opt%"=="2" (
+    echo.
+    echo [AirDrawing] Training Machine Learning Models...
+    %PY_CMD% ml_models/train_ml.py
+    pause
+    goto menu
+) else if "%opt%"=="3" (
+    echo.
+    echo [AirDrawing] Training Deep Learning Models...
+    %PY_CMD% dl_models/train_dl.py
+    pause
+    goto menu
+) else if "%opt%"=="4" (
+    echo.
+    echo [AirDrawing] Generating Analytics Dashboard & Reports...
+    %PY_CMD% analytics/run_all_analytics.py
+    pause
+    goto menu
+) else if "%opt%"=="5" (
+    echo.
+    echo [AirDrawing] Launching Live Dataset Collector...
+    %PY_CMD% dataset/dataset_collector.py
+    pause
+    goto menu
+) else if "%opt%"=="6" (
+    echo.
+    echo [AirDrawing] Running Test Suite...
+    %PY_CMD% test_app.py
+    pause
+    goto menu
+) else if "%opt%"=="7" (
+    echo Exiting. Goodbye!
+    exit /b 0
+) else (
+    echo Invalid selection. Please try again.
+    goto menu
 )
-
-pause

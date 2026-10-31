@@ -1,0 +1,453 @@
+{
+  "best_model_name": "Random Forest",
+  "feature_names": [
+    "norm_x_0",
+    "norm_y_0",
+    "norm_z_0",
+    "norm_x_1",
+    "norm_y_1",
+    "norm_z_1",
+    "norm_x_2",
+    "norm_y_2",
+    "norm_z_2",
+    "norm_x_3",
+    "norm_y_3",
+    "norm_z_3",
+    "norm_x_4",
+    "norm_y_4",
+    "norm_z_4",
+    "norm_x_5",
+    "norm_y_5",
+    "norm_z_5",
+    "norm_x_6",
+    "norm_y_6",
+    "norm_z_6",
+    "norm_x_7",
+    "norm_y_7",
+    "norm_z_7",
+    "norm_x_8",
+    "norm_y_8",
+    "norm_z_8",
+    "norm_x_9",
+    "norm_y_9",
+    "norm_z_9",
+    "norm_x_10",
+    "norm_y_10",
+    "norm_z_10",
+    "norm_x_11",
+    "norm_y_11",
+    "norm_z_11",
+    "norm_x_12",
+    "norm_y_12",
+    "norm_z_12",
+    "norm_x_13",
+    "norm_y_13",
+    "norm_z_13",
+    "norm_x_14",
+    "norm_y_14",
+    "norm_z_14",
+    "norm_x_15",
+    "norm_y_15",
+    "norm_z_15",
+    "norm_x_16",
+    "norm_y_16",
+    "norm_z_16",
+    "norm_x_17",
+    "norm_y_17",
+    "norm_z_17",
+    "norm_x_18",
+    "norm_y_18",
+    "norm_z_18",
+    "norm_x_19",
+    "norm_y_19",
+    "norm_z_19",
+    "norm_x_20",
+    "norm_y_20",
+    "norm_z_20",
+    "dist_wrist_tip_4",
+    "dist_wrist_tip_8",
+    "dist_wrist_tip_12",
+    "dist_wrist_tip_16",
+    "dist_wrist_tip_20",
+    "dist_mcp_tip_2_4",
+    "dist_mcp_tip_5_8",
+    "dist_mcp_tip_9_12",
+    "dist_mcp_tip_13_16",
+    "dist_mcp_tip_17_20",
+    "dist_thumb_index",
+    "dist_index_middle",
+    "dist_middle_ring",
+    "dist_ring_pinky",
+    "angle_bend_finger_0",
+    "angle_bend_finger_1",
+    "angle_bend_finger_2",
+    "angle_bend_finger_3",
+    "angle_bend_finger_4"
+  ],
+  "class_names": [
+    "CLEAR",
+    "DRAW",
+    "ERASE",
+    "SELECT",
+    "STANDBY"
+  ],
+  "n_features": 82,
+  "results": {
+    "Random Forest": {
+      "cv_accuracy_mean": 1.0,
+      "cv_accuracy_std": 0.0,
+      "test_accuracy": 1.0,
+      "test_f1": 1.0,
+      "latency_ms": 0.032,
+      "confusion_matrix": [
+        [
+          100,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          100,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          100,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          100,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          100
+        ]
+      ],
+      "classification_report": {
+        "CLEAR": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "DRAW": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "ERASE": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "SELECT": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "STANDBY": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "accuracy": 1.0,
+        "macro avg": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 500.0
+        },
+        "weighted avg": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 500.0
+        }
+      }
+    },
+    "Support Vector Machine": {
+      "cv_accuracy_mean": 1.0,
+      "cv_accuracy_std": 0.0,
+      "test_accuracy": 1.0,
+      "test_f1": 1.0,
+      "latency_ms": 0.017,
+      "confusion_matrix": [
+        [
+          100,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          100,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          100,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          100,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          100
+        ]
+      ],
+      "classification_report": {
+        "CLEAR": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "DRAW": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "ERASE": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "SELECT": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "STANDBY": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "accuracy": 1.0,
+        "macro avg": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 500.0
+        },
+        "weighted avg": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 500.0
+        }
+      }
+    },
+    "K-Nearest Neighbors": {
+      "cv_accuracy_mean": 1.0,
+      "cv_accuracy_std": 0.0,
+      "test_accuracy": 1.0,
+      "test_f1": 1.0,
+      "latency_ms": 0.005,
+      "confusion_matrix": [
+        [
+          100,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          100,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          100,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          100,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          100
+        ]
+      ],
+      "classification_report": {
+        "CLEAR": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "DRAW": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "ERASE": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "SELECT": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "STANDBY": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "accuracy": 1.0,
+        "macro avg": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 500.0
+        },
+        "weighted avg": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 500.0
+        }
+      }
+    },
+    "Logistic Regression": {
+      "cv_accuracy_mean": 1.0,
+      "cv_accuracy_std": 0.0,
+      "test_accuracy": 1.0,
+      "test_f1": 1.0,
+      "latency_ms": 0.0,
+      "confusion_matrix": [
+        [
+          100,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          100,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          100,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          100,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          100
+        ]
+      ],
+      "classification_report": {
+        "CLEAR": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "DRAW": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "ERASE": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "SELECT": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "STANDBY": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 100.0
+        },
+        "accuracy": 1.0,
+        "macro avg": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 500.0
+        },
+        "weighted avg": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1-score": 1.0,
+          "support": 500.0
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,3 @@
+timestamp,mode,speed_px_sec,fps,model_type,confidence
+0.0,DRAW,0.0,32.0,ML,0.99
+0.0,SELECT,0.0,31.5,ML,0.97

@@ -5,7 +5,7 @@ Main entry point for the Real-Time Air Drawing Application.
 
 Features:
 - Real-time webcam tracking with MediaPipe
-- Natural gesture recognition:
+- Natural gesture recognition backed by Machine Learning & Smooth Tracking:
     * Index finger UP: Draw smooth lines
     * Two fingers UP (Index + Middle): Control / Button Selection Mode
     * Closed Fist: Circular Eraser
@@ -15,38 +15,56 @@ Features:
     * Click buttons directly with Mouse
     * Hotkeys: 1=Blue, 2=Green, 3=Red, 4=Black, C=Clear, S=Save
 - Dual-buffer rendering (crisp drawing overlay including true black strokes)
-- Error handling for camera connectivity and hand loss
+- Simple, clean user interface exactly like the previous version
 """
 
+import os
 import sys
 import time
 import cv2
 import numpy as np
+
+# Ensure project root in sys.path
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 from hand_tracking import HandTracker
 from gestures import GestureRecognizer, SmoothPointer
 from drawing import CanvasManager
 from ai_interface import AICommandDispatcher
 
+# ML and Analytics modules running seamlessly in background
+from ml_models.ml_gesture_classifier import MLGestureClassifier
+from dl_models.stroke_cnn import StrokeCNN
+from analytics.session_analytics import SessionAnalyticsTracker
+
 
 class AirDrawingApp:
     """
-    Coordinates the camera feed, hand tracker, gesture recognizer,
-    canvas manager, and user interface.
+    Coordinates webcam feed, hand tracking, virtual canvas,
+    and user interactions with a clean, simple toolbar interface.
     """
 
     def __init__(self, camera_index=0):
         self.camera_index = camera_index
         self.cap = None
 
-        # Core system components
+        # Core Computer Vision components
         self.tracker = HandTracker(max_num_hands=1)
         self.gesture_recognizer = GestureRecognizer()
         self.smooth_pointer = SmoothPointer(alpha=0.65, max_jump_distance=90.0)
         self.canvas = CanvasManager(width=640, height=480)
-        self.ai = AICommandDispatcher(self.canvas)
 
-        # Toolbar UI configuration
+        # Background Machine Learning & Analytics Engine
+        self.ml_classifier = MLGestureClassifier()
+        self.stroke_cnn = StrokeCNN()
+        self.session_analytics = SessionAnalyticsTracker()
+
+        # AI Command Dispatcher
+        self.ai = AICommandDispatcher(self.canvas, app_reference=self)
+
+        # Toolbar UI configuration (clean 8 buttons)
         self.toolbar_height = 70
         self.buttons = []
         self._init_toolbar()
@@ -63,8 +81,7 @@ class AirDrawingApp:
         self.fps = 0.0
 
     def _init_toolbar(self):
-        """Define on-screen interactive toolbar buttons."""
-        # Button definitions: (Label, Action Type, Action Value, Background Color, Text Color)
+        """Define clean, standard on-screen interactive toolbar buttons."""
         btn_defs = [
             ("1: BLUE", "color", "BLUE", (220, 80, 10), (255, 255, 255)),
             ("2: GREEN", "color", "GREEN", (30, 170, 40), (255, 255, 255)),
@@ -102,8 +119,6 @@ class AirDrawingApp:
     def open_camera(self):
         """Open webcam with graceful fallback to alternative indices and DirectShow on Windows."""
         print(f"[AirDrawing] Initializing webcam at index {self.camera_index}...")
-        
-        # Try DirectShow on Windows for near-instant camera startup
         if sys.platform.startswith("win"):
             self.cap = cv2.VideoCapture(self.camera_index, cv2.CAP_DSHOW)
             if not self.cap or not self.cap.isOpened():
@@ -130,7 +145,6 @@ class AirDrawingApp:
             print("=" * 60 + "\n")
             return False
 
-        # Set resolution to 640x480 for smooth 30+ FPS tracking
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         print("[AirDrawing] Webcam initialized successfully!")
@@ -158,10 +172,42 @@ class AirDrawingApp:
         if event == cv2.EVENT_LBUTTONDOWN:
             for btn in self.buttons:
                 x1, y1, x2, y2 = btn["rect"]
-                # Generous click hitbox for toolbar
                 if (x1 - 5) <= x <= (x2 + 5) and 0 <= y <= (self.toolbar_height + 15):
                     self._handle_toolbar_action(btn)
                     break
+
+    def classify_gesture(self, landmarks):
+        """
+        Classifies active gesture using Machine Learning with smooth fallback.
+        """
+        if not landmarks or len(landmarks) < 21:
+            return GestureRecognizer.MODE_STANDBY, None
+
+        # ML model prediction
+        if self.ml_classifier.is_loaded:
+            pred_name, conf, _ = self.ml_classifier.predict(landmarks)
+            if conf >= 0.65:
+                index_pt = (landmarks[8][1], landmarks[8][2])
+                middle_pt = (landmarks[12][1], landmarks[12][2])
+                fist_pt = (landmarks[9][1], landmarks[9][2])
+
+                if pred_name == "DRAW":
+                    return GestureRecognizer.MODE_DRAW, index_pt
+                elif pred_name == "SELECT":
+                    select_pt = ((index_pt[0] + middle_pt[0]) // 2, (index_pt[1] + middle_pt[1]) // 2)
+                    return GestureRecognizer.MODE_SELECT, select_pt
+                elif pred_name == "ERASE":
+                    return GestureRecognizer.MODE_ERASE, fist_pt
+                elif pred_name == "CLEAR":
+                    self.canvas.clear()
+                    self.canvas.show_toast("Canvas Cleared")
+                    return GestureRecognizer.MODE_STANDBY, index_pt
+                else:
+                    return GestureRecognizer.MODE_STANDBY, index_pt
+
+        # Heuristic classification fallback
+        mode, pt, _ = self.gesture_recognizer.classify_gesture(landmarks)
+        return mode, pt
 
     def draw_ui(self, frame, active_mode):
         """Draw the top toolbar, status badge, cursor, and bottom instructions."""
@@ -182,7 +228,6 @@ class AirDrawingApp:
             # Determine button background color
             bg = list(btn["bg_color"])
             if is_hovered:
-                # Brighten button when hovered
                 bg = [min(255, c + 45) for c in bg]
 
             cv2.rectangle(frame, (x1, y1), (x2, y2), tuple(bg), -1)
@@ -248,19 +293,15 @@ class AirDrawingApp:
         in_toolbar = (cy <= self.toolbar_height + 15)
 
         if in_toolbar:
-            # When inside toolbar, show circular selection pointer
             cv2.circle(frame, (cx, cy), 10, (0, 255, 0), 2, cv2.LINE_AA)
             cv2.drawMarker(frame, (cx, cy), (0, 255, 0), cv2.MARKER_CROSS, 16, 2, cv2.LINE_AA)
         elif active_mode == GestureRecognizer.MODE_DRAW:
-            # Circle showing current brush size and color
             cv2.circle(frame, (cx, cy), max(self.canvas.brush_size // 2, 4), self.canvas.current_color, -1, cv2.LINE_AA)
             cv2.circle(frame, (cx, cy), max(self.canvas.brush_size // 2, 4) + 2, (255, 255, 255), 1, cv2.LINE_AA)
         elif active_mode == GestureRecognizer.MODE_SELECT:
-            # Selection reticle
             cv2.circle(frame, (cx, cy), 9, (0, 255, 255), 2, cv2.LINE_AA)
             cv2.drawMarker(frame, (cx, cy), (0, 255, 255), cv2.MARKER_CROSS, 16, 1, cv2.LINE_AA)
         elif active_mode == GestureRecognizer.MODE_ERASE:
-            # Eraser circular boundary
             cv2.circle(frame, (cx, cy), self.canvas.eraser_radius, (0, 100, 255), 2, cv2.LINE_AA)
             cv2.circle(frame, (cx, cy), 3, (0, 100, 255), -1, cv2.LINE_AA)
 
@@ -273,7 +314,6 @@ class AirDrawingApp:
         sx, sy = select_pt
         now = time.time()
 
-        # Generous vertical and horizontal hit tolerance
         found_idx = None
         for idx, btn in enumerate(self.buttons):
             x1, y1, x2, y2 = btn["rect"]
@@ -283,26 +323,31 @@ class AirDrawingApp:
 
         if found_idx is not None:
             if self.hover_button_idx == found_idx:
-                # Continuous hover over same button
                 if (now - self.hover_start_time) >= self.dwell_time_required and (now - self.last_action_time) > self.action_cooldown:
                     self._handle_toolbar_action(self.buttons[found_idx])
                     self.last_action_time = now
                     self.hover_start_time = now
             else:
-                # Just moved into new button
                 self.hover_button_idx = found_idx
                 self.hover_start_time = now
         else:
             self.hover_button_idx = None
+
+    def recognize_current_drawing(self):
+        """Run Deep Learning sketch recognizer when triggered."""
+        shape_label, confidence, _ = self.stroke_cnn.predict_canvas_stroke(self.canvas.canvas_mask)
+        if shape_label == "NO_DRAWING":
+            self.canvas.show_toast("Draw a shape first!")
+        else:
+            self.canvas.show_toast(f"Recognized: {shape_label} ({confidence*100:.0f}%)")
 
     def run(self):
         """Main application event loop."""
         if not self.open_camera():
             return
 
-        window_name = "Air Drawing - College Project"
+        window_name = "Real-Time Air Drawing Application"
         cv2.namedWindow(window_name, cv2.WINDOW_AUTOSIZE)
-        # Register mouse click callback for instant mouse selection as well
         cv2.setMouseCallback(window_name, self._mouse_callback)
 
         print("\n" + "=" * 55)
@@ -324,7 +369,6 @@ class AirDrawingApp:
                     time.sleep(0.05)
                     continue
 
-                # Flip horizontally for natural mirror behavior
                 frame = cv2.flip(frame, 1)
                 h, w, _ = frame.shape
                 self.canvas.resize(w, h)
@@ -332,17 +376,24 @@ class AirDrawingApp:
                 # 1. Hand tracking
                 landmarks, frame = self.tracker.find_hand_landmarks(frame, draw=True)
 
-                # 2. Gesture classification
-                active_mode, raw_pointer, _ = self.gesture_recognizer.classify_gesture(landmarks)
+                # 2. Gesture classification (ML-powered in background)
+                active_mode, raw_pointer = self.classify_gesture(landmarks)
 
                 # 3. Pointer smoothing
                 smoothed_pointer = self.smooth_pointer.update(raw_pointer)
 
-                # 4. Handle gestures & toolbar interaction
+                # 4. Record telemetry in background
+                self.session_analytics.record_frame(
+                    mode=active_mode,
+                    raw_pt=raw_pointer,
+                    smooth_pt=smoothed_pointer,
+                    fps=self.fps
+                )
+
+                # 5. Handle gestures & toolbar interaction
                 is_in_toolbar = (smoothed_pointer is not None and smoothed_pointer[1] <= self.toolbar_height + 15)
 
                 if is_in_toolbar:
-                    # Pointing inside toolbar zone triggers button selection (works with 1 or 2 fingers!)
                     self.canvas.reset_stroke()
                     self.process_selection_mode(smoothed_pointer)
                 elif active_mode == GestureRecognizer.MODE_DRAW and smoothed_pointer is not None:
@@ -355,30 +406,29 @@ class AirDrawingApp:
                     self.canvas.reset_stroke()
                     self.process_selection_mode(smoothed_pointer)
                 else:
-                    # STANDBY or no hand
                     self.canvas.reset_stroke()
                     self.hover_button_idx = None
 
-                # 5. Blend canvas strokes onto webcam frame
+                # 6. Blend canvas strokes onto webcam frame
                 blended_frame = self.canvas.blend(frame)
 
-                # 6. Render UI toolbar, status badge, instructions, and cursor
+                # 7. Render UI toolbar, status badge, instructions, and cursor
                 self.draw_ui(blended_frame, active_mode)
                 self.draw_cursor(blended_frame, smoothed_pointer, active_mode)
 
-                # 7. Calculate FPS
+                # 8. Calculate FPS
                 curr_time = time.time()
                 time_diff = curr_time - self.prev_frame_time
                 if time_diff > 0:
                     self.fps = 0.9 * self.fps + 0.1 * (1.0 / time_diff)
                 self.prev_frame_time = curr_time
 
-                # 8. Display output window
+                # 9. Display output window
                 cv2.imshow(window_name, blended_frame)
 
-                # 9. Handle keyboard shortcuts (Hotkeys)
+                # 10. Handle keyboard shortcuts
                 key = cv2.waitKey(1) & 0xFF
-                if key in (ord('q'), ord('Q'), 27):  # 27 is ESC
+                if key in (ord('q'), ord('Q'), 27):
                     print("[AirDrawing] Exiting application...")
                     break
                 elif key in (ord('1'), ord('b'), ord('B')):
@@ -393,6 +443,8 @@ class AirDrawingApp:
                     self.canvas.clear()
                 elif key in (ord('s'), ord('S')):
                     self.canvas.save()
+                elif key in (ord('r'), ord('R')):
+                    self.recognize_current_drawing()
                 elif key in (ord('e'), ord('E')):
                     self.canvas.show_toast("Close fist to erase strokes")
                 elif key in (ord('+'), ord('=')):
@@ -406,10 +458,12 @@ class AirDrawingApp:
             self.cleanup()
 
     def cleanup(self):
-        """Release camera and destroy OpenCV windows safely."""
+        """Release camera, destroy OpenCV windows, and save session telemetry."""
         if self.cap is not None and self.cap.isOpened():
             self.cap.release()
         cv2.destroyAllWindows()
+        # Save telemetry in background
+        self.session_analytics.export_session_report()
         print("[AirDrawing] Resources successfully released. Goodbye!")
 
 
